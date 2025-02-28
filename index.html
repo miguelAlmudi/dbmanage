@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Itens</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        table { width: 50%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <h2>Lista de Itens</h2>
+    
+    <input type="text" id="newItem" placeholder="Novo item">
+    <button onclick="addItem()">Adicionar</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Itens serão carregados aqui -->
+        </tbody>
+    </table>
+
+    <script>
+        const API_URL = "http://localhost:3000/items";
+
+        function loadTable() {
+            $.get(API_URL, function(data) {
+                let rows = "";
+                data.forEach(item => {
+                    rows += `<tr>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td><button onclick="deleteItem(${item.id})">Remover</button></td>
+                             </tr>`;
+                });
+                $("#tableBody").html(rows);
+            });
+        }
+
+        function addItem() {
+    const name = $("#newItem").val();
+    if (name.trim() === "") {
+        alert("Digite um nome válido!");
+        return;
+    }
+
+    $.ajax({
+        url: API_URL,
+        type: "POST",
+        contentType: "application/json", // Define o tipo correto
+        data: JSON.stringify({ name: name }), // Converte para JSON corretamente
+        success: function() {
+            $("#newItem").val("");
+            loadTable();
+        },
+        error: function(err) {
+            alert("Erro ao adicionar item!");
+            console.error(err);
+        }
+    });
+}
+
+
+        function deleteItem(id) {
+            if (confirm("Tem certeza que deseja remover este item?")) {
+                $.ajax({
+                    url: API_URL + "/" + id,
+                    type: "DELETE",
+                    success: function() {
+                        loadTable();
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            loadTable();
+        });
+    </script>
+
+</body>
+</html>
